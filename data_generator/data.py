@@ -1,9 +1,9 @@
 import random
 import copy
 import requests
-from mealgenerator import get_meal
-from faker import Faker
 from datetime import datetime
+from faker import Faker
+from mealgenerator import get_meal
 
 
 class Product:
@@ -251,8 +251,41 @@ def gen_storage_produst(storages, restaraunt_menu, menu_position, ingridients):
             storages_produsts.append(StorageProduct(storage.id, id_product))
     return storages_produsts
 
+def change_key(in_str):
+    first = True
+    ans = ''
+    for s in in_str:
+        if s.islower() or first:
+            if not s.islower():
+                first = False
+            ans += s
+        else:
+            ans += '_' + s.lower()
+            
+    return ans
+
+def get_insert(list_obj):
+    ans = []
+    for obj in list_obj:
+        d = copy.deepcopy(obj.__dict__)
+        if obj.__class__.__name__ == 'Meal':
+            d = {'id': d["id"],
+                 'name':d['name'],
+                 "time":d["time"],
+                 "type":d['type'],
+                 'cost':d['cost']
+                 }
+        k = d.keys()
+        v = list(map(str, d.values()))
+        k_s = ', '.join(k)
+        v_s = ', '.join(v)
+        s = f'INSERT INTO {change_key(obj.__class__.__name__)}({k_s}) VALUES ({v_s});'
+        ans.append(s)
+    return ans
+
 
 if __name__ == "__main__":
+    ans = []
     employees = gen_employees(20)
     meals = gen_id([get_meal() for _ in range(20)])
     products = gen_products(meals)
@@ -268,3 +301,21 @@ if __name__ == "__main__":
     storage_produst = gen_storage_produst(
         storages, restaraunt_menu, menu_position, ingridients
     )
+    
+    ans += get_insert(employees)
+    ans += get_insert(meals)
+    ans += get_insert(products)
+    ans += get_insert(restarants)
+    ans += get_insert(menus)
+    ans += get_insert(jobs)
+    ans += get_insert(restaraunt_menu)
+    ans += get_insert(menu_position)
+    ans += get_insert(checks)
+    ans += get_insert(meal_check)
+    ans += get_insert(ingridients)
+    ans += get_insert(storages)
+    ans += get_insert(storage_produst)
+    
+    with open('data.txt', 'w') as f:
+        for s in ans:
+            f.write(s + '\n')
