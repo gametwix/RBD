@@ -276,10 +276,15 @@ def get_insert(list_obj):
                  'cost':d['cost']
                  }
         k = d.keys()
-        v = list(map(str, d.values()))
+        v = []
+        for el in d.values():
+            if type(el) is str:
+                v.append(f'\'{el}\'')
+            else:
+                v.append(str(el))
         k_s = ', '.join(k)
         v_s = ', '.join(v)
-        s = f'INSERT INTO {change_key(obj.__class__.__name__)}({k_s}) VALUES ({v_s});'
+        s = f'INSERT INTO \"{change_key(obj.__class__.__name__)}\"({k_s}) VALUES ({v_s});'
         ans.append(s)
     return ans
 
